@@ -53,7 +53,7 @@ const replyWithIntro = (ctx: any) =>
   });
 
 bot.command("start", replyWithIntro);
-bot.on("message", replyWithIntro);
+//bot.on("message", replyWithIntro);
 
 bot.hears(/(.+)/s, async (ctx) => {
   const inputTxt = normalize(ctx.match[0])
