@@ -107,9 +107,9 @@ const parseSubject2InlineMsg = (subject: any) => {
     return article
 }
 
-const debugMsg = ({bot, query = 'Query Empty', response= 'Response Empty', debugID}: { bot, query: any, response: string, debugID: number }): void => {
+/*const debugMsg = ({bot, query = 'Query Empty', response= 'Response Empty', debugID}: { bot, query: any, response: string, debugID: number }): void => {
     bot.telegram.sendMessage(debugID, "Mensaje: " + JSON.stringify(query));
     bot.telegram.sendMessage(debugID, "File content at: " + new Date() + " is: \n" + response);
 }
-
+*/
 export { normalize, parseResJson2ArrayObjects, findBestSubjectMatch, findMatchingSubjects, parse2Msg, parseSubjects2InlineMsg, parseSubject2InlineMsg, debugMsg }
