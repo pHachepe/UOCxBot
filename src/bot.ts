@@ -2,6 +2,7 @@ import { Bot, InlineKeyboard, webhookCallback } from "grammy";
 import express from "express";
 import https from "https"
 import { findBestSubjectMatch, findMatchingSubjects, normalize, parse2Msg, parseResJson2ArrayObjects, parseSubjects2InlineMsg } from "./functions";
+import { InlineQueryResult } from "grammy/out/types.node";
 
 const CACHE_TIME = 86400
 
@@ -89,7 +90,21 @@ bot.on("inline_query", async (ctx) => {
         let bestSubjects = findMatchingSubjects(queryNormalized, subjects);
         bestSubjects = bestSubjects.sort((a, b) => b.rating - a.rating).slice(0, 5);
         const msg = parseSubjects2InlineMsg(bestSubjects);
-        ctx.answerInlineQuery(msg, { is_personal: false, cache_time: CACHE_TIME });
+        const inlineQueryResult: InlineQueryResult[] = msg.map((item) => {
+          return {
+            type: "article",
+            id: item.id,
+            title: item.title,
+            input_message_content: {
+              message_text: item.input_message_content.message_text,
+              parse_mode: "HTML",
+            },
+            reply_markup: item.reply_markup,
+            url: 'prueba URL',
+            description: 'item.description',
+          };
+        });
+        ctx.answerInlineQuery(inlineQueryResult, { is_personal: false, cache_time: CACHE_TIME });
         //debugMsg({ bot, query: inputQuery, response: JSON.stringify(msg), debugID });
       });
     });
