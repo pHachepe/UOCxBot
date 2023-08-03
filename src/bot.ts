@@ -1,7 +1,7 @@
 import { Bot, InlineKeyboard, webhookCallback } from "grammy";
 import express from "express";
 import https from "https"
-import { debugMsg, findBestSubjectMatch, findMatchingSubjects, normalize, parse2Msg, parseResJson2ArrayObjects, parseSubjects2InlineMsg } from "./functions";
+import { findBestSubjectMatch, findMatchingSubjects, normalize, parse2Msg, parseResJson2ArrayObjects, parseSubjects2InlineMsg } from "./functions";
 
 const CACHE_TIME = 86400
 
@@ -65,7 +65,7 @@ bot.hears(/(.+)/s, async (ctx) => {
           const subject = findBestSubjectMatch(inputTxt, subjects)
           const msg = parse2Msg(subject) ?? `No he encontrado ninguna coincidencia para "${inputTxt}"\n\n ${msgHelp}`
           ctx.reply(msg)
-          debugMsg({bot, query: ctx.message, response: msg, debugID})
+          //debugMsg({bot, query: ctx.message, response: msg, debugID})
       })
   })
 })
@@ -90,7 +90,7 @@ bot.on("inline_query", async (ctx) => {
         bestSubjects = bestSubjects.sort((a, b) => b.rating - a.rating).slice(0, 5);
         const msg = parseSubjects2InlineMsg(bestSubjects);
         ctx.answerInlineQuery(msg, { is_personal: false, cache_time: CACHE_TIME });
-        debugMsg({ bot, query: inputQuery, response: JSON.stringify(msg), debugID });
+        //debugMsg({ bot, query: inputQuery, response: JSON.stringify(msg), debugID });
       });
     });
 })
