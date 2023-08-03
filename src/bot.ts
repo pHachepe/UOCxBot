@@ -56,6 +56,7 @@ bot.command("start", replyWithIntro);
 //bot.on("message", replyWithIntro);
 
 bot.hears(/(.+)/s, async (ctx) => {
+  ctx.reply('Hola')
   const inputTxt = normalize(ctx.match[0])
 
   await https.get(urlGSheet, (res: any) => {
