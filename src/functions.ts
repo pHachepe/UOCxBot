@@ -1,8 +1,4 @@
 import { findBestMatch } from "string-similarity"
-import { Markup } from "telegraf"
-import { InlineQueryResultArticle } from "telegraf/typings/telegram-types"
-import { Telegraf } from "telegraf";
-
 
 // Delete Accents, etc
 const normalize = (str: string) => str?.normalize("NFD")?.replace(/[\u0300-\u036f]/g, "").toUpperCase() || ''
@@ -29,8 +25,8 @@ const parseResJson2ArrayObjects = (data: readonly Uint8Array[]) => {
 }
 
 const findBestSubjectMatch = (inputTxt: string, subjects: { id: number, es: string, cat: string, url: string }[]) => {
-    const subjectsNamesEs = subjects.map(subject => this.normalize(subject.es))
-    const subjectsNamesCat = subjects.map(subject => this.normalize(subject.cat))
+    const subjectsNamesEs = subjects.map(subject => normalize(subject.es))
+    const subjectsNamesCat = subjects.map(subject => normalize(subject.cat))
 
     const matchesEs = findBestMatch(inputTxt, subjectsNamesEs)
     const matchesCat = findBestMatch(inputTxt, subjectsNamesCat)
@@ -42,8 +38,8 @@ const findBestSubjectMatch = (inputTxt: string, subjects: { id: number, es: stri
 }
 
 const findMatchingSubjects = (inputTxt: string, subjects: { id: number, es: string, cat: string, url: string }[]) => {
-    const subjectsNamesEs = subjects.map(subject => this.normalize(subject.es))
-    const subjectsNamesCat = subjects.map(subject => this.normalize(subject.cat))
+    const subjectsNamesEs = subjects.map(subject => normalize(subject.es))
+    const subjectsNamesCat = subjects.map(subject => normalize(subject.cat))
 
     const matchesEs = findBestMatch(inputTxt, subjectsNamesEs)
     const matchesCat = findBestMatch(inputTxt, subjectsNamesCat)
@@ -54,12 +50,12 @@ const findMatchingSubjects = (inputTxt: string, subjects: { id: number, es: stri
     const topTargetsEsCat = topMatchesEsCat.map(m => m.target)
 
     const bestSubjectsEsCat = subjects.filter(
-        subject => topTargetsEsCat.includes(this.normalize(subject.es))
-            || topTargetsEsCat.includes(this.normalize(subject.cat))
+        subject => topTargetsEsCat.includes(normalize(subject.es))
+            || topTargetsEsCat.includes(normalize(subject.cat))
     )
 
     const bestSubjectsEsCatWithRating = bestSubjectsEsCat.map(item => {
-        let rating: any = topMatchesEsCat.find(m => m.target == this.normalize(item.es) || m.target == this.normalize(item.cat))
+        let rating: any = topMatchesEsCat.find(m => m.target == normalize(item.es) || m.target == normalize(item.cat))
         rating = rating.rating
         return { ...item, rating }
     })
@@ -80,12 +76,12 @@ const parse2Msg = (subject: { id: number, es: string, cat: string, target: strin
     return msg
 }
 
-const parseSubjects2InlineMsg = (subjects: any[]): InlineQueryResultArticle[] => {
-    return subjects.map(this.parseSubject2InlineMsg)
+const parseSubjects2InlineMsg = (subjects: any[]) => {
+    return subjects.map(parseSubject2InlineMsg)
 }
 
-const parseSubject2InlineMsg = (subject: any): InlineQueryResultArticle => {
-    let article: InlineQueryResultArticle = {
+const parseSubject2InlineMsg = (subject: any) => {
+    let article = {
         type: "article",
         id: subject.id,
         title: subject.es + ' - Rating: ' + subject.rating.toFixed(2),
@@ -99,9 +95,9 @@ const parseSubject2InlineMsg = (subject: any): InlineQueryResultArticle => {
         reply_markup: {
             inline_keyboard: [
                 [
-                    Markup.button.url('Group 🧿', subject.url),
-                    Markup.button.url('General 🧜🏻', 'https://t.me/joinchat/U7otjvMzawEpEwe4'),
-                    Markup.button.url('UOCxBot 🤖', 'https://t.me/UOCxBot'),
+                    //Markup.button.url('Group 🧿', subject.url),
+                    //Markup.button.url('General 🧜🏻', 'https://t.me/joinchat/U7otjvMzawEpEwe4'),
+                    //Markup.button.url('UOCxBot 🤖', 'https://t.me/UOCxBot'),
                     // Markup.button.url('UOC ❤️', 'https://uoc.edu'),
                 ]
             ]
@@ -111,7 +107,7 @@ const parseSubject2InlineMsg = (subject: any): InlineQueryResultArticle => {
     return article
 }
 
-const debugMsg = ({bot, query = 'Query Empty', response= 'Response Empty', debugID}: { bot: Telegraf, query: any, response: string, debugID: number }): void => {
+const debugMsg = ({bot, query = 'Query Empty', response= 'Response Empty', debugID}: { bot, query: any, response: string, debugID: number }): void => {
     bot.telegram.sendMessage(debugID, "Mensaje: " + JSON.stringify(query));
     bot.telegram.sendMessage(debugID, "File content at: " + new Date() + " is: \n" + response);
 }
