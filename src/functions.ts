@@ -112,4 +112,4 @@ const parseSubject2InlineMsg = (subject: any) => {
     bot.telegram.sendMessage(debugID, "File content at: " + new Date() + " is: \n" + response);
 }
 */
-export { normalize, parseResJson2ArrayObjects, findBestSubjectMatch, findMatchingSubjects, parse2Msg, parseSubjects2InlineMsg, parseSubject2InlineMsg, debugMsg }
+export { normalize, parseResJson2ArrayObjects, findBestSubjectMatch, findMatchingSubjects, parse2Msg, parseSubjects2InlineMsg, parseSubject2InlineMsg }
