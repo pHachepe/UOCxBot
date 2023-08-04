@@ -60,8 +60,8 @@ const replyWithIntro = (ctx: any) =>
 
 bot.hears(/(.+)/s, async (ctx) => {
   const inputTxt = normalize(ctx.match[0])
-
-  await https.get(urlGSheet, (res: any) => {
+  ctx.reply('Holi: ' + inputTxt)
+  /*await https.get(urlGSheet, (res: any) => {
       const data: Uint8Array[] = []
       res.on('data', (chunk: Uint8Array) => data.push(chunk))
       res.on('end', () => {
@@ -72,7 +72,7 @@ bot.hears(/(.+)/s, async (ctx) => {
           //debugMsg({bot, query: ctx.message, response: msg, debugID})
           ctx.reply('Hola: ' + JSON.stringify(inputTxt))
       })
-  })
+  })*/
 })
 
 /*
