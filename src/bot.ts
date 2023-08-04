@@ -75,6 +75,7 @@ bot.hears(/(.+)/s, async (ctx) => {
 })
 */
 
+/*
 bot.hears(/(.+)/s, async (ctx) => {
   const inputTxt = normalize(ctx.match[0]);
 
@@ -89,6 +90,11 @@ bot.hears(/(.+)/s, async (ctx) => {
     console.error('Error:', error);
     await ctx.reply('Hubo un error al procesar tu solicitud.');
   }
+});
+*/
+bot.on("message", async (ctx) => {
+  const message = ctx.message; // the message object
+  ctx.reply('Hola: ' + JSON.stringify(message))
 });
 
 // Función para obtener datos de Google Sheets devuelve una promesa con el tipo Uint8Array
