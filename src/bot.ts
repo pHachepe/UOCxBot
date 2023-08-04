@@ -57,11 +57,10 @@ const replyWithIntro = (ctx: any) =>
 
 //bot.command("start", replyWithIntro);
 //bot.on("message", replyWithIntro);
-
+/*
 bot.hears(/(.+)/s, async (ctx) => {
   const inputTxt = normalize(ctx.match[0])
-  ctx.reply('Holi: ' + inputTxt)
-  /*await https.get(urlGSheet, (res: any) => {
+  await https.get(urlGSheet, (res: any) => {
       const data: Uint8Array[] = []
       res.on('data', (chunk: Uint8Array) => data.push(chunk))
       res.on('end', () => {
@@ -72,8 +71,43 @@ bot.hears(/(.+)/s, async (ctx) => {
           //debugMsg({bot, query: ctx.message, response: msg, debugID})
           ctx.reply('Hola: ' + JSON.stringify(inputTxt))
       })
-  })*/
+  })
 })
+*/
+
+bot.hears(/(.+)/s, async (ctx) => {
+  const inputTxt = normalize(ctx.match[0]);
+
+  try {
+    const data = await fetchDataFromGoogleSheets();
+    const subjects = parseResJson2ArrayObjects(data);
+    const subject = findBestSubjectMatch(inputTxt, subjects);
+    const msg = parse2Msg(subject) || `No he encontrado ninguna coincidencia para "${inputTxt}"\n\n ${msgHelp}`;
+    
+    await ctx.reply(msg);
+  } catch (error) {
+    console.error('Error:', error);
+    await ctx.reply('Hubo un error al procesar tu solicitud.');
+  }
+});
+
+// Función para obtener datos de Google Sheets devuelve una promesa con el tipo Uint8Array
+function fetchDataFromGoogleSheets(): Promise<Uint8Array[]> {
+  return new Promise((resolve, reject) => {
+    https.get(urlGSheet, (res) => {
+      const data = [];
+      res.on('data', (chunk) => data.push(chunk));
+      /*res.on('end', () => {
+        const result = Buffer.concat(data).toString();
+        resolve(result);
+      });*/
+    }).on('error', (error) => {
+      reject(error);
+    });
+  });
+}
+
+
 
 /*
 bot.on("inline_query", async (ctx) => {
