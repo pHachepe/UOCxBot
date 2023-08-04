@@ -65,11 +65,12 @@ bot.hears(/(.+)/s, async (ctx) => {
       const data: Uint8Array[] = []
       res.on('data', (chunk: Uint8Array) => data.push(chunk))
       res.on('end', () => {
-          const subjects = parseResJson2ArrayObjects(data)
-          const subject = findBestSubjectMatch(inputTxt, subjects)
-          const msg = parse2Msg(subject) ?? `No he encontrado ninguna coincidencia para "${inputTxt}"\n\n ${msgHelp}`
-          ctx.reply(msg)
+          //const subjects = parseResJson2ArrayObjects(data)
+          //const subject = findBestSubjectMatch(inputTxt, subjects)
+          //const msg = parse2Msg(subject) ?? `No he encontrado ninguna coincidencia para "${inputTxt}"\n\n ${msgHelp}`
+          //ctx.reply(msg)
           //debugMsg({bot, query: ctx.message, response: msg, debugID})
+          ctx.reply('Hola: ' + JSON.stringify(data))
       })
   })
 })
