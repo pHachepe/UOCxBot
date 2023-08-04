@@ -28,10 +28,10 @@ bot.api.setMyCommands([
     command: "tg_totes_cat",
     description: "Llista de tots els grups de Telegram",
   },
-  {
+  /*{
     command: "wa_todos_es",
     description: "Lista de todos los grupos de WhatsApp",
-  },
+  },*/
   {
     command: "wa_totes_cat",
     description: "Llista de tots els grups de WhatsApp",
