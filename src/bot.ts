@@ -1,6 +1,7 @@
 import express from "express";
 import { Bot, webhookCallback } from "grammy";
 import { GENERAL_GROUP, fetchDataFromGoogleSheets, findBestSubjectMatch, normalize, parse2Msg, parseUint8Array2ArraySubjects } from "./functions";
+import { get } from "lodash";
 
 const CACHE_TIME = 86400
 
@@ -12,21 +13,33 @@ const msgHelp: string = process.env.MSG_HELP || "No está definido un mensaje de
 //if (!process.env.DEBUG_ID) throw new Error("Please add a DEBUG ID")
 const debugID: number = Number(process.env.DEBUG_ID)
 
-// Handle the /yo command to greet the user
-//bot.command("yo", (ctx) => ctx.reply(`Yo ${ctx.from?.username}`));
-
-//bot.command("effect", (ctx) => ctx.reply('Not implemented yet'));
-
 // Suggest commands in the menu
-/*
 bot.api.setMyCommands([
-  { command: "yo", description: "Be greeted by the bot" },
+  { command: "start", description: "Escribeme la asignatura y te devuelvo el link del grupo ;)" },
   {
-    command: "effect",
-    description: "Apply text effects on the text. (usage: /effect [text])",
+    command: "todas_es",
+    description: "Lista de todas las asignaturas con sus links",
+  },
+  {
+    command: "totes_cat",
+    description: "Llista de totes les assignatures amb els seus links",
   },
 ]);
-*/
+
+// Handle the /yo command to greet the user
+bot.command("start", (ctx) => ctx.reply(`Yo ${ctx.from?.username}`));
+
+bot.command("todos_es", async (ctx) => ctx.reply(await getAllSubjects('es'), { parse_mode: "HTML", disable_web_page_preview: true }));
+bot.command("totes_cat", async (ctx) => ctx.reply(await getAllSubjects('cat'), { parse_mode: "HTML", disable_web_page_preview: true }));
+                                    //ctx.reply(replyMsg, { parse_mode: "HTML"})
+
+const getAllSubjects = async (lang: 'es' | 'cat') => {
+  const dataUint8Array = await fetchDataFromGoogleSheets();
+  const subjects = parseUint8Array2ArraySubjects(dataUint8Array);
+  const subjectsNames = subjects.map((subject: { lang: string; url: string }) => `<a href="${subject.url}">${subject[lang as keyof typeof subject]}</a>` + '\n');
+  return subjectsNames.join('\n')
+}
+
 /*
 // Handle the /about command
 const aboutUrlKeyboard = new InlineKeyboard().url(
@@ -81,7 +94,7 @@ bot.on("message", async (ctx) => {
 
 
   const replyMsg = parse2Msg({ ...subjectMatch, general }, message) || `No he encontrado ninguna coincidencia para "${normalizedMsg}"\n\n ${msgHelp}`;
-  ctx.reply(replyMsg)
+  ctx.reply(replyMsg, { parse_mode: "HTML"})
 
   if (debugID) {
     const debugMsg = {
