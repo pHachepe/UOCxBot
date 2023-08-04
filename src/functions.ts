@@ -6,9 +6,7 @@ const GENERAL_GROUP = 'Grupo General de Telegram'
 const normalize = (str: string) => str?.normalize("NFD")?.replace(/[\u0300-\u036f]/g, "").toUpperCase() || ''
 
 // Obtiene los datos de Google Sheets y devuelve una promesa con la data en un array de Uint8Array
-async function fetchDataFromGoogleSheets(): Promise<Uint8Array[]> {
-  if (!process.env.URL_SHEET_JSON) throw new Error("Please add a URL GSheet")
-  const urlGSheet: string = process.env.URL_SHEET_JSON
+async function fetchDataFromGoogleSheets(urlGSheet: string): Promise<Uint8Array[]> {
   return new Promise((resolve, reject) => {
     https.get(urlGSheet, (res) => {
       const { statusCode } = res;
@@ -29,25 +27,40 @@ async function fetchDataFromGoogleSheets(): Promise<Uint8Array[]> {
   });
 }
 
-const parseUint8Array2ArraySubjects = (data: readonly Uint8Array[]) => {
-  // Invalid Json is received, it's necessary to remove 47 chars at the beginning and 2 at the end
-  const subjectsTxt = Buffer.concat(data).toString().slice(47, -2)
-  const subjectsJson = JSON.parse(subjectsTxt)
+const parseUint8ArrayToSubjectArray = (data: readonly Uint8Array[], app: 'Telegram' | 'WhatsApp' = 'Telegram') => {
+  const subjectsTxt = Buffer.concat(data).toString();
+  const trimmedText = subjectsTxt.substring(47, subjectsTxt.length - 2);
+  const subjectsJson = JSON.parse(trimmedText);
 
-  const tableJson = subjectsJson.table
-  const rowsJson = tableJson.rows
+  const rowsJson = subjectsJson.table.rows.slice(2); // Exclude table headers
 
-  let cellsJson = rowsJson.map((row: any) => row.c)
-  cellsJson = cellsJson.slice(2) // Delete table headers
+  const subjects = rowsJson.map((row: any, id: number) => {
+    const cells = row.c;
+    const [cat, ...rest] = cells.map((cell: any) => cell?.v);
 
-  let subjects = cellsJson.map((cells: any, id: number) => {
-    const [cat, es, url] = cells.map((cell: any) => cell?.v)
-    return { id, cat, es, url };
-  })
+    const subject: any = { id, cat };
 
-  subjects = subjects.filter((subject: any) => subject.url) // Delete subjects without group url
+    if (app === 'WhatsApp') {
+      const [url] = rest;
+      subject['url'] = url;
+    } else {
+      const [es, url] = rest;
+      subject['es'] = es;
+      subject['url'] = url;
+    }
 
-  return subjects
+    return subject;
+  });
+
+  return subjects.filter((subject: { url: string; }) => subject.url)
+};
+
+// ToDo: Refactorizar y quitar el parámetro app y urlGSheet
+const getAllSubjects = async (lang: 'es' | 'cat', app: 'Telegram' | 'WhatsApp', urlGSheet: string) => {
+  const dataUint8Array = await fetchDataFromGoogleSheets(urlGSheet);
+  const subjects = parseUint8ArrayToSubjectArray(dataUint8Array, app);
+  const subjectsNames = subjects.map((subject: { lang: string; url: string }) => `<a href="${subject.url}">${subject[lang as keyof typeof subject]}</a>` + '\n');
+  return subjectsNames.join('\n')
 }
 
 const findBestSubjectMatch = (inputTxt: string = GENERAL_GROUP, subjects: { id: number, es: string, cat: string, url: string }[]) => {
@@ -94,16 +107,23 @@ const parse2Msg = (subject: { id: number, es: string, cat: string, target: strin
 
   // rating a porcentaje
   const rating = subject.rating * 100
-  if (subject.rating > 0)
+  if (subject.rating > 0) {
     msg = ''
       //+ ' Id: ' + subject.id
-      + '\nEs: ' + subject.es
-      + '\nCat: ' + subject.cat
-      + (searchMsg ? '\nBuscado: ' + searchMsg : '')
-      + '\nCoincidencia: ' + rating.toFixed(2) + '%'
-      + '\nGrupo: ' + subject.url
-      + (subject.general ? '\nGeneral: ' + subject.general : '')
-
+      + '\n<b>🇪🇸 Es: </b>' + subject.es
+      + '\n<b>⭐️Cat: </b>' + subject.cat
+      + (searchMsg ? '\n<b>🔍Buscado: </b>' + searchMsg : '')
+      + '\n<b>🫶🏻Coincidencia: </b>' + rating.toFixed(2) + '%'
+      + '\n<b>👥Grupo de ' + subject.es + ': </b>' + subject.url
+    ;
+    if (subject.rating < 0.6)
+      msg += '\n\n⚠️⚠️⚠️'
+          + '\nSi no es el grupo que buscas, prueba a escribir el nombre completo de la asignatura.'
+          + '\n\nTen en cuenta que solo hay asignaturas de Ingeniería Informática.'
+          + '\n\nSi quieres añadir grupos de asignaturas de otros grados, contacta con @PeHachePe'
+          + (subject.general ? '\n\nTambién puedes probar a preguntar en el\n<b>Grupo General:</b> ' + subject.general : '')
+          + '\n⚠️⚠️⚠️\n\n'
+  }
   return msg
 }
 
@@ -139,4 +159,4 @@ const parseSubject2InlineMsg = (subject: any) => {
   return article
 }
 
-export { GENERAL_GROUP, fetchDataFromGoogleSheets, findBestSubjectMatch, findMatchingSubjects, normalize, parse2Msg, parseSubject2InlineMsg, parseSubjects2InlineMsg, parseUint8Array2ArraySubjects };
+export { GENERAL_GROUP, fetchDataFromGoogleSheets, findBestSubjectMatch, findMatchingSubjects, getAllSubjects, normalize, parse2Msg, parseSubject2InlineMsg, parseSubjects2InlineMsg, parseUint8ArrayToSubjectArray };

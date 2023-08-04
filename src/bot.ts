@@ -1,11 +1,15 @@
 import express from "express";
 import { Bot, webhookCallback } from "grammy";
-import { GENERAL_GROUP, fetchDataFromGoogleSheets, findBestSubjectMatch, normalize, parse2Msg, parseUint8Array2ArraySubjects } from "./functions";
-import { get } from "lodash";
+import { GENERAL_GROUP, fetchDataFromGoogleSheets, findBestSubjectMatch, getAllSubjects, normalize, parse2Msg, parseUint8ArrayToSubjectArray } from "./functions";
 
 const CACHE_TIME = 86400
 
 const bot = new Bot(process.env.TELEGRAM_TOKEN || "");
+
+if (!process.env.URL_SHEET_JSON_TG) throw new Error("Please add a URL Telegram GSheet")
+const urlGSheetTg: string = process.env.URL_SHEET_JSON_TG
+if (!process.env.URL_SHEET_JSON_WA) throw new Error("Please add a URL WhatsApp GSheet")
+const urlGSheetWa: string = process.env.URL_SHEET_JSON_WA
 
 if (!process.env.MSG_HELP) throw new Error("Please add a MSG HELP")
 const msgHelp: string = process.env.MSG_HELP || "No está definido un mensaje de ayuda"
@@ -17,28 +21,33 @@ const debugID: number = Number(process.env.DEBUG_ID)
 bot.api.setMyCommands([
   { command: "start", description: "Escribeme la asignatura y te devuelvo el link del grupo ;)" },
   {
-    command: "todas_es",
-    description: "Lista de todas las asignaturas con sus links",
+    command: "tg_todos_es",
+    description: "Lista de todos los grupos de Telegram",
   },
   {
-    command: "totes_cat",
-    description: "Llista de totes les assignatures amb els seus links",
+    command: "tg_totes_cat",
+    description: "Llista de tots els grups de Telegram",
+  },
+  {
+    command: "wa_todos_es",
+    description: "Lista de todos los grupos de WhatsApp",
+  },
+  {
+    command: "wa_totes_cat",
+    description: "Llista de tots els grups de WhatsApp",
   },
 ]);
 
 // Handle the /yo command to greet the user
 bot.command("start", (ctx) => ctx.reply(`Yo ${ctx.from?.username}`));
 
-bot.command("todos_es", async (ctx) => ctx.reply(await getAllSubjects('es'), { parse_mode: "HTML", disable_web_page_preview: true }));
-bot.command("totes_cat", async (ctx) => ctx.reply(await getAllSubjects('cat'), { parse_mode: "HTML", disable_web_page_preview: true }));
-                                    //ctx.reply(replyMsg, { parse_mode: "HTML"})
+bot.command("tg_todos_es", async (ctx) => ctx.reply(await getAllSubjects('es', 'Telegram', urlGSheetTg), { parse_mode: "HTML", disable_web_page_preview: true }));
+bot.command("tg_totes_cat", async (ctx) => ctx.reply(await getAllSubjects('cat', 'Telegram', urlGSheetTg), { parse_mode: "HTML", disable_web_page_preview: true }));
+//bot.command("wa_todos_es", async (ctx) => ctx.reply(await getAllSubjects('es', 'WhatsApp'), { parse_mode: "HTML", disable_web_page_preview: true }));
+bot.command("wa_totes_cat", async (ctx) => ctx.reply(await getAllSubjects('cat', 'WhatsApp', urlGSheetWa), { parse_mode: "HTML", disable_web_page_preview: true }));
 
-const getAllSubjects = async (lang: 'es' | 'cat') => {
-  const dataUint8Array = await fetchDataFromGoogleSheets();
-  const subjects = parseUint8Array2ArraySubjects(dataUint8Array);
-  const subjectsNames = subjects.map((subject: { lang: string; url: string }) => `<a href="${subject.url}">${subject[lang as keyof typeof subject]}</a>` + '\n');
-  return subjectsNames.join('\n')
-}
+
+
 
 /*
 // Handle the /about command
@@ -86,8 +95,8 @@ bot.on("message", async (ctx) => {
   const message = ctx.message.text
   const normalizedMsg = message && normalize(message)
 
-  const dataUint8Array = await fetchDataFromGoogleSheets();
-  const subjects = parseUint8Array2ArraySubjects(dataUint8Array);
+  const dataUint8Array = await fetchDataFromGoogleSheets(urlGSheetTg);
+  const subjects = parseUint8ArrayToSubjectArray(dataUint8Array);
 
   const subjectMatch = findBestSubjectMatch(normalizedMsg, subjects);
   const { url: general } = findBestSubjectMatch(GENERAL_GROUP, subjects);
