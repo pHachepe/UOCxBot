@@ -9,7 +9,7 @@ const bot = new Bot(process.env.TELEGRAM_TOKEN || "");
 if (!process.env.MSG_HELP) throw new Error("Please add a MSG HELP")
 const msgHelp: string = process.env.MSG_HELP || "No está definido un mensaje de ayuda"
 
-if (!process.env.DEBUG_ID) throw new Error("Please add a DEBUG ID")
+//if (!process.env.DEBUG_ID) throw new Error("Please add a DEBUG ID")
 const debugID: number = Number(process.env.DEBUG_ID)
 
 // Handle the /yo command to greet the user
