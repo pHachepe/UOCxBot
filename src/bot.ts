@@ -1,16 +1,10 @@
-import { Bot, InlineKeyboard, webhookCallback } from "grammy";
 import express from "express";
-import https from "https"
-import { findBestSubjectMatch, findMatchingSubjects, normalize, parse2Msg, parseResJson2ArrayObjects, parseSubjects2InlineMsg } from "./functions";
-import { InlineQueryResult } from "grammy/out/types.node";
+import { Bot, webhookCallback } from "grammy";
+import { GENERAL_GROUP, fetchDataFromGoogleSheets, findBestSubjectMatch, normalize, parse2Msg, parseUint8Array2ArraySubjects } from "./functions";
 
 const CACHE_TIME = 86400
 
-// Create a bot using the Telegram token
 const bot = new Bot(process.env.TELEGRAM_TOKEN || "");
-
-if (!process.env.URL_SHEET_JSON) throw new Error("Please add a URL GSheet")
-const urlGSheet: string = process.env.URL_SHEET_JSON
 
 if (!process.env.MSG_HELP) throw new Error("Please add a MSG HELP")
 const msgHelp: string = process.env.MSG_HELP || "No está definido un mensaje de ayuda"
@@ -75,45 +69,30 @@ bot.hears(/(.+)/s, async (ctx) => {
 })
 */
 
-/*
-bot.hears(/(.+)/s, async (ctx) => {
-  const inputTxt = normalize(ctx.match[0]);
+bot.on("message", async (ctx) => {
+  const message = ctx.message.text
+  const normalizedMsg = message && normalize(message)
 
-  try {
-    const data = await fetchDataFromGoogleSheets();
-    const subjects = parseResJson2ArrayObjects(data);
-    const subject = findBestSubjectMatch(inputTxt, subjects);
-    const msg = parse2Msg(subject) || `No he encontrado ninguna coincidencia para "${inputTxt}"\n\n ${msgHelp}`;
-    
-    await ctx.reply(msg);
-  } catch (error) {
-    console.error('Error:', error);
-    await ctx.reply('Hubo un error al procesar tu solicitud.');
+  const dataUint8Array = await fetchDataFromGoogleSheets();
+  const subjects = parseUint8Array2ArraySubjects(dataUint8Array);
+
+  const subjectMatch = findBestSubjectMatch(normalizedMsg, subjects);
+  const { url: general } = findBestSubjectMatch(GENERAL_GROUP, subjects);
+
+
+  const replyMsg = parse2Msg({ ...subjectMatch, general }, message) || `No he encontrado ninguna coincidencia para "${normalizedMsg}"\n\n ${msgHelp}`;
+  ctx.reply(replyMsg)
+
+  if (debugID) {
+    const debugMsg = {
+      date: new Date().toLocaleString(),
+      username: '@' + ctx.message.from?.username,
+      message: ctx.message.text,
+      search: normalizedMsg,
+    }
+    bot.api.sendMessage(debugID, JSON.stringify(debugMsg, null, 2));
   }
 });
-*/
-bot.on("message", async (ctx) => {
-  const message = ctx.message; // the message object
-  ctx.reply('Hola: ' + JSON.stringify(message))
-});
-
-// Función para obtener datos de Google Sheets devuelve una promesa con el tipo Uint8Array
-function fetchDataFromGoogleSheets(): Promise<Uint8Array[]> {
-  return new Promise((resolve, reject) => {
-    https.get(urlGSheet, (res) => {
-      const data = [];
-      res.on('data', (chunk) => data.push(chunk));
-      /*res.on('end', () => {
-        const result = Buffer.concat(data).toString();
-        resolve(result);
-      });*/
-    }).on('error', (error) => {
-      reject(error);
-    });
-  });
-}
-
-
 
 /*
 bot.on("inline_query", async (ctx) => {
