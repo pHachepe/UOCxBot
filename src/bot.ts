@@ -19,11 +19,12 @@ if (!process.env.DEBUG_ID) throw new Error("Please add a DEBUG ID")
 const debugID: number = Number(process.env.DEBUG_ID)
 
 // Handle the /yo command to greet the user
-bot.command("yo", (ctx) => ctx.reply(`Yo ${ctx.from?.username}`));
+//bot.command("yo", (ctx) => ctx.reply(`Yo ${ctx.from?.username}`));
 
-bot.command("effect", (ctx) => ctx.reply('Not implemented yet'));
+//bot.command("effect", (ctx) => ctx.reply('Not implemented yet'));
 
 // Suggest commands in the menu
+/*
 bot.api.setMyCommands([
   { command: "yo", description: "Be greeted by the bot" },
   {
@@ -31,7 +32,8 @@ bot.api.setMyCommands([
     description: "Apply text effects on the text. (usage: /effect [text])",
   },
 ]);
-
+*/
+/*
 // Handle the /about command
 const aboutUrlKeyboard = new InlineKeyboard().url(
   "FAQ Ingeniería Informática",
@@ -51,8 +53,9 @@ const replyWithIntro = (ctx: any) =>
     reply_markup: aboutUrlKeyboard,
     parse_mode: "HTML",
   });
+*/
 
-bot.command("start", replyWithIntro);
+//bot.command("start", replyWithIntro);
 //bot.on("message", replyWithIntro);
 
 bot.hears(/(.+)/s, async (ctx) => {
@@ -71,6 +74,7 @@ bot.hears(/(.+)/s, async (ctx) => {
   })
 })
 
+/*
 bot.on("inline_query", async (ctx) => {
     let inputQuery = ctx.inlineQuery?.query;
     if (!inputQuery) {
@@ -109,7 +113,7 @@ bot.on("inline_query", async (ctx) => {
       });
     });
 })
-
+*/
 /*
 // Handle inline queries
 bot.inlineQuery(queryRegEx, async (ctx) => {
